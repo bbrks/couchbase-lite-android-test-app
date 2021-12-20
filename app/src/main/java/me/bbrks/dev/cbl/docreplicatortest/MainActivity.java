@@ -14,6 +14,8 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
 import com.couchbase.lite.Document;
+import com.couchbase.lite.LogDomain;
+import com.couchbase.lite.LogLevel;
 import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.Replicator;
@@ -47,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
         txtDocID  = findViewById(R.id.txtDocID);
 
         CouchbaseLite.init(getApplicationContext());
+        Database.log.getConsole().setDomains(LogDomain.ALL_DOMAINS);
+        Database.log.getConsole().setLevel(LogLevel.VERBOSE);
 
         findViewById(R.id.btnDocAdd).setOnClickListener(v -> {
             if (cblDatabase == null) {
