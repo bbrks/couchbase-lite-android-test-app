@@ -27,7 +27,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
 //    private static final String SYNC_GATEWAY_URL = "ws://192.168.1.13:4984/";
-    private static final String SYNC_GATEWAY_URL = "ws://172.18.1.188:4984/"; // Android emulator loopback address
+    private static final String SYNC_GATEWAY_URL = "ws://10.0.2.2:4984/"; // Android emulator loopback address
     private static final String DB_NAME = "db1";
     private static final String SG_USERNAME = "demo";
     private static final String SG_PASSWORD = "password";
