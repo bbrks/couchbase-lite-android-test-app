@@ -8,35 +8,58 @@
 
     <EditText
         android:id="@+id/txtDocID"
+        android:layout_height="50dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Doc ID (optional)"
+        android:hint="Doc ID for upsert (optional - blank for random ID)"
         android:singleLine="true"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/numCountLabel"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_marginTop="15dp"
+        android:hint="Doc/Revision count:"
+        android:singleLine="true"
+        app:layout_constraintTop_toBottomOf="@id/txtDocID"
+        app:layout_constraintRight_toLeftOf="@+id/numCount" />
+
+    <NumberPicker
+        android:id="@+id/numCount"
+        android:layout_height="50dp"
+        android:layout_width="100dp"
+        android:hint="Count for op (Bulk create or upsert)"
+        android:singleLine="false"
+        app:layout_constraintTop_toBottomOf="@id/txtDocID"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <Button
         android:id="@+id/btnDocAdd"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:background="@android:color/holo_blue_bright"
-        android:text="Upsert Document"
-        app:layout_constraintTop_toBottomOf="@+id/txtDocID" />
+        android:background="@android:color/holo_blue_dark"
+        android:text="Create/Update Document(s)"
+        app:layout_constraintTop_toBottomOf="@+id/numCount" />
 
     <Button
         android:id="@+id/btnReplStart"
-        android:layout_width="match_parent"
+        android:layout_width="225dp"
         android:layout_height="100dp"
         android:background="@android:color/holo_green_light"
         android:text="Start Replicator"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnDocAdd" />
 
     <Button
         android:id="@+id/btnReplStop"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="100dp"
         android:background="@android:color/holo_orange_light"
         android:text="Stop Replicator"
-        app:layout_constraintTop_toBottomOf="@id/btnReplStart" />
+        app:layout_constraintLeft_toRightOf="@id/btnReplStart"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnDocAdd" />
 
     <Button
         android:id="@+id/btnDBNew"

@@ -3,11 +3,11 @@ package me.bbrks.dev.cbl.docreplicatortest;
 import android.os.Bundle;
 import android.text.Editable;
 import android.widget.EditText;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.couchbase.lite.Array;
 import com.couchbase.lite.BasicAuthenticator;
 import com.couchbase.lite.CouchbaseLite;
 import com.couchbase.lite.CouchbaseLiteException;
@@ -36,9 +36,44 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView txtStatus;
     private EditText txtDocID;
+    private NumberPicker numCount;
 
     private Database cblDatabase;
     private Replicator cblReplicator;
+
+    private void createDoc(String docID) {
+        MutableDocument mutableDoc;
+
+        // new doc with random ID
+        if (docID.equals("")) {
+            mutableDoc = new MutableDocument();
+        } else {
+            Document document = cblDatabase.getDocument(docID);
+            if (document == null) {
+                // new doc
+                mutableDoc = new MutableDocument(docID);
+            } else {
+                // doc exists, so add/modify updated_at timestamp
+                mutableDoc = document.toMutable();
+            }
+        }
+
+        // TODO: Configurable channels
+        MutableArray array = new MutableArray(new ArrayList<>());
+        array.addString("foobar");
+        mutableDoc.setArray("channels", array);
+        mutableDoc.setLong("created_at", System.currentTimeMillis());
+
+        // TODO: Configurable blobs?
+
+        try {
+            cblDatabase.save(mutableDoc);
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+
+        txtStatus.setText("Added "+mutableDoc.toString());
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +82,11 @@ public class MainActivity extends AppCompatActivity {
 
         txtStatus = findViewById(R.id.txtStatus);
         txtDocID  = findViewById(R.id.txtDocID);
+        numCount  = findViewById(R.id.numCount);
+        numCount.setValue(1);
+        numCount.setMinValue(1);
+        numCount.setMaxValue(Integer.MAX_VALUE);
+        numCount.setWrapSelectorWheel(false);
 
         CouchbaseLite.init(getApplicationContext());
         Database.log.getConsole().setDomains(LogDomain.ALL_DOMAINS);
@@ -64,32 +104,22 @@ public class MainActivity extends AppCompatActivity {
                 docID = docIDText.toString();
             }
 
-            MutableDocument mutableDoc;
-
-            // new doc with random ID
-            if (docID.equals("")) {
-                mutableDoc = new MutableDocument();
+            String finalDocID = docID;
+            int count = numCount.getValue();
+            if (count == 1) {
+                createDoc(docID);
             } else {
-                Document document = cblDatabase.getDocument(docID);
-                if (document == null) {
-                    // new doc
-                    mutableDoc = new MutableDocument(docID);
-                } else {
-                    // doc exists, so add/modify updated_at timestamp
-                    mutableDoc = document.toMutable();
-                }
-            }
-            Array array = new MutableArray(new ArrayList<>());
-            mutableDoc.setArray("channels", array);
-            mutableDoc.setLong("created_at", System.currentTimeMillis());
-
-            try {
-                cblDatabase.save(mutableDoc);
-            } catch (CouchbaseLiteException e) {
-                e.printStackTrace();
+                // Create >1 docs in thread to avoid blocking UI
+                Thread t = new Thread() {
+                    public void run() {
+                        for (int i = 0; i <numCount.getValue(); i++) {
+                            createDoc(finalDocID);
+                        }
+                    }
+                };
+                t.start();
             }
 
-            txtStatus.setText("Added "+mutableDoc.toString());
         });
 
         findViewById(R.id.btnReplStart).setOnClickListener(v -> {
