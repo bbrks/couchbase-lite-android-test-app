@@ -2,7 +2,7 @@
 
 A simple test app to upsert documents into a CBL app, and stop and start replication against Sync Gateway. Used for manual testing of replication.
 
-![Screenshot 2021-12-16 at 17 54 50](https://user-images.githubusercontent.com/1525809/146423723-261f6a43-cae0-4fdc-bda1-979a11f794bd.png)
+![Screenshot 2022-06-16 at 15 43 26](https://user-images.githubusercontent.com/1525809/174096835-eed7e7dd-6cfc-4e32-9eae-a938696f2c98.png)
 
 ## Prerequisites
 
