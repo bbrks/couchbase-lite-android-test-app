@@ -9,6 +9,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.couchbase.lite.BasicAuthenticator;
+import com.couchbase.lite.Blob;
+import com.couchbase.lite.CollectionConfiguration;
 import com.couchbase.lite.CouchbaseLite;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -20,16 +22,36 @@ import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.Replicator;
 import com.couchbase.lite.ReplicatorConfiguration;
+import com.couchbase.lite.ReplicatorType;
 import com.couchbase.lite.URLEndpoint;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import org.apache.commons.lang3.RandomStringUtils;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Credentials;
+import okhttp3.Headers;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class MainActivity extends AppCompatActivity {
 
-//    private static final String SYNC_GATEWAY_URL = "ws://192.168.1.13:4984/";
-    private static final String SYNC_GATEWAY_URL = "ws://10.0.2.2:4984/"; // Android emulator loopback address
+//    private static final String SYNC_GATEWAY_IP = "192.168.68.101";
+    private static final String SYNC_GATEWAY_IP = "10.0.2.2"; // Android emulator loopback address
+
+    private static final String SYNC_GATEWAY_URL = "ws://"+SYNC_GATEWAY_IP+":4984/";
     private static final String DB_NAME = "db1";
     private static final String SG_USERNAME = "demo";
     private static final String SG_PASSWORD = "password";
@@ -40,6 +62,16 @@ public class MainActivity extends AppCompatActivity {
 
     private Database cblDatabase;
     private Replicator cblReplicator;
+
+    private void createDoc() {
+        Editable docIDText = txtDocID.getText();
+        String docID = "";
+        if (docIDText != null) {
+            docID = docIDText.toString();
+        }
+        String finalDocID = docID;
+        createDoc(finalDocID);
+    }
 
     private void createDoc(String docID) {
         MutableDocument mutableDoc;
@@ -52,19 +84,22 @@ public class MainActivity extends AppCompatActivity {
             if (document == null) {
                 // new doc
                 mutableDoc = new MutableDocument(docID);
+                mutableDoc.setLong("created_at", System.currentTimeMillis());
             } else {
                 // doc exists, so add/modify updated_at timestamp
                 mutableDoc = document.toMutable();
+                mutableDoc.setLong("updated_at", System.currentTimeMillis());
             }
         }
 
         // TODO: Configurable channels
         MutableArray array = new MutableArray(new ArrayList<>());
-        array.addString("foobar");
+        array.addString("a");
+        array.addString(RandomStringUtils.randomAlphabetic(10));
         mutableDoc.setArray("channels", array);
-        mutableDoc.setLong("created_at", System.currentTimeMillis());
 
         // TODO: Configurable blobs?
+        mutableDoc.setBlob("myblob", new Blob("text/plain", "hello world".getBytes()));
 
         try {
             cblDatabase.save(mutableDoc);
@@ -94,26 +129,19 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.btnDocAdd).setOnClickListener(v -> {
             if (cblDatabase == null) {
-               txtStatus.setText("No database! Can't create a doc...");
-               return;
+                txtStatus.setText("No database! Can't create a doc...");
+                return;
             }
 
-            Editable docIDText = txtDocID.getText();
-            String docID = "";
-            if (docIDText != null) {
-                docID = docIDText.toString();
-            }
-
-            String finalDocID = docID;
             int count = numCount.getValue();
             if (count == 1) {
-                createDoc(docID);
+                createDoc();
             } else {
                 // Create >1 docs in thread to avoid blocking UI
                 Thread t = new Thread() {
                     public void run() {
                         for (int i = 0; i <numCount.getValue(); i++) {
-                            createDoc(finalDocID);
+                            createDoc();
                         }
                     }
                 };
@@ -176,9 +204,17 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            ReplicatorConfiguration replConfig = new ReplicatorConfiguration(db, targetEndpoint);
-            replConfig.setReplicatorType(ReplicatorConfiguration.ReplicatorType.PUSH_AND_PULL);
+            ReplicatorConfiguration replConfig = new ReplicatorConfiguration(targetEndpoint);
+            replConfig.setType(ReplicatorType.PUSH_AND_PULL);
             replConfig.setContinuous(true);
+            try {
+                replConfig.addCollection(db.getDefaultCollection(), new CollectionConfiguration());
+            } catch (CouchbaseLiteException e) {
+                throw new RuntimeException(e);
+            }
+
+            // revocations/removals (true by default)
+//            replConfig.setAutoPurgeEnabled(true);
 
             replConfig.setAuthenticator(new BasicAuthenticator(SG_USERNAME, SG_PASSWORD.toCharArray()));
 

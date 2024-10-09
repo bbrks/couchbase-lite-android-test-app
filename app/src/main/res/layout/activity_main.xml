@@ -8,12 +8,12 @@
 
     <EditText
         android:id="@+id/txtDocID"
-        android:layout_height="50dp"
         android:layout_width="match_parent"
-        android:hint="Doc ID for upsert (optional - blank for random ID)"
+        android:layout_height="50dp"
+        android:hint="Doc ID (optional - blank for random ID)"
         android:singleLine="true"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent" />
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/numCountLabel"
@@ -41,6 +41,14 @@
         android:background="@android:color/holo_blue_dark"
         android:text="Create/Update Document(s)"
         app:layout_constraintTop_toBottomOf="@+id/numCount" />
+
+<!--    <Button-->
+<!--        android:id="@+id/btnRunRepro"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="100dp"-->
+<!--        android:background="@android:color/holo_purple"-->
+<!--        android:text="Run Repro"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/btnDocAdd" />-->
 
     <Button
         android:id="@+id/btnReplStart"
@@ -75,6 +83,7 @@
         android:layout_height="0dp"
         android:text=""
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnDBNew" />
+        app:layout_constraintTop_toBottomOf="@id/btnDBNew"
+        tools:text="log output" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
